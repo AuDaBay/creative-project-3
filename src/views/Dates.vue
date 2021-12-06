@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import DatesList from "../components/DatesList.vue"
 export default {
   name: 'Dates',
@@ -15,13 +16,19 @@ export default {
   },
   data() {
     return {
-      
+      dates: [],
     }
   },
-  computed: {
-    dates() {
-      return this.$root.$data.dates
-    }
+  created() {
+    this.getDates();
+  },
+    methods: {
+    async getDates() {
+      
+        let response = await axios.get("/api/dates");
+        this.dates = response.data;
+        return true;
+    },
   }
 }
 </script>

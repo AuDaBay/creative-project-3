@@ -7,7 +7,8 @@
 </template>
 
 <script>
-import GamesList from "../components/GamesList.vue"
+import axios from 'axios';
+import GamesList from "../components/GamesList.vue";
 export default {
   name: 'Games',
   components: {
@@ -15,13 +16,21 @@ export default {
   },
   data() {
     return {
+      games: [],
       
     }
   },
-  computed: {
-    games() {
-      return this.$root.$data.games
-    }
+    created() {
+    this.getGames();
+  },
+    methods: {
+    async getGames() {
+      
+        let response = await axios.get("/api/games");
+        this.games = response.data;
+        return true;
+      
+    },
   }
 }
 </script>

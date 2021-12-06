@@ -12,11 +12,24 @@
     <div class="projects">
         <div class="project" v-for="project in projects" :key="project.name">
             <div class="info">
-            <h1>{{project.name}}</h1>
+            <h1>{{project.title}}</h1>
             <p> Idea: {{project.description}}</p>
-            <a :href="project.reference">Tutorial</a>
+            <a :href="project.path">Tutorial</a>
             <p></p>
-            <button @click="remove(project)" class="auto"> Remove</button>
+            <button @click="deleteItem(project)" class="auto"> Remove</button>
+            <button @click="editOn()" class="auto"> Edit</button>
+
+            <div class="edit">
+            <form v-if="editer" @submit.prevent="editItem(project)">
+            <input v-model="editName" placeholder="Name">
+            <p></p>
+            <input v-model="editLocation" placeholder="Release Date">
+            <p></p>
+            <input v-model="editInfo" placeholder="URL">
+            <button class="submit">Submit</button>
+            </form>
+            </div>
+
             </div>
         </div>
     </div>
@@ -26,6 +39,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
     name: 'ProjectList',
     props: {
@@ -33,35 +47,80 @@ export default {
     },
     data() {
         return {
+            addItem: null,
             adder: false,
+            editer: false,
             name: '',
             description: '',
-            reference: ''
+            reference: '',
+            editName: '',
+            editLocation: '',
+            editInfo: '',
         }
         
     },
+    created() {
+    this.getItems();
+    },
     methods: {
+        async upload() {
+            console.log("we are here")
+        let r2 = await axios.post('/api/projects', {
+          title: this.name,
+          description: this.description,
+          path: this.reference
+        });
+        this.addItem = r2.data;
+    },
+    async getItems() {
+      
+        let response = await axios.get("/api/projects");
+        this.projects = response.data;
+        return true;
+         
+    },
         addToList() {
             this.adder = !this.adder
         },
+        editOn() {
+           this.editer = !this.editer 
+        },
         Add() {
-            let project = {
-
-            }
+            let project = {}
             project.name = this.name
             project.description = this.description
             project.reference = this.reference
 
-            this.$root.$data.projects.push(project)
+            this.upload();
+            this.getItems();
             this.adder = !this.adder
             this.name = ""
             this.description = ""
             this.reference = ""
             },
-            remove(project) {
-                this.$root.$data.projects.splice(this.$root.$data.projects.indexOf(project), 1);
-            }
 
+           async deleteItem(item) {
+      
+        await axios.delete("/api/projects/" + item._id);
+        this.findItem = null;
+        this.getItems();
+        return true;
+    },
+    async editItem(item) {
+      
+        await axios.put("/api/projects/" + item._id, {
+          title: this.editName,
+          description: this.editLocation,
+          path: this.editInfo
+        });
+        this.findItem = null;
+        this.getItems();
+        this.editer = !this.editer
+
+        return true;
+      
+    },
+    
     }
 
 }

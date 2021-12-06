@@ -12,11 +12,24 @@
     <div class="games">
         <div class="game" v-for="game in Games" :key="game.name">
             <div class="info">
-            <h1>{{game.name}}</h1>
-            <p>Release: {{game.rdate}}</p>
-            <a :href="game.trailer">{{game.trailer}}</a>
+            <h1>{{game.title}}</h1>
+            <p>Release: {{game.description}}</p>
+            <a :href="game.path">{{game.path}}</a>
             <p></p>
-            <button @click="remove(game)" class="auto"> Remove</button>
+            <button @click="deleteItem(game)" class="auto"> Remove</button>
+            <button @click="editOn()" class="auto"> Edit</button>
+
+            <div class="edit">
+            <form v-if="editer" @submit.prevent="editItem(game)">
+            <input v-model="editName" placeholder="Name">
+            <p></p>
+            <input v-model="editLocation" placeholder="Release Date">
+            <p></p>
+            <input v-model="editInfo" placeholder="URL">
+            <button class="submit">Submit</button>
+            </form>
+            </div>
+
         </div>
     </div>
 </div>
@@ -26,6 +39,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
     name: 'GamesList',
     props: {
@@ -33,16 +47,43 @@ export default {
     },
     data() {
         return {
+            addItem: null,
             adder: false,
+            editer:false,
             name: '',
             rdate: '',
-            trailer: ''
+            trailer: '',
+            editName: '',
+            editLocation: '',
+            editInfo: '',
         }
         
     },
+    created() {
+    this.getItems();
+    },
     methods: {
+        async upload() {
+            console.log("we are here")
+        let r2 = await axios.post('/api/games', {
+          title: this.name,
+          description: this.rdate,
+          path: this.trailer
+        });
+        this.addItem = r2.data;
+    },
+    async getItems() {
+      
+        let response = await axios.get("/api/games");
+        this.Games = response.data;
+        return true;
+         
+    },
         addToList() {
             this.adder = !this.adder
+        },
+        editOn() {
+           this.editer = !this.editer 
         },
         Add() {
             let game = {}
@@ -50,16 +91,35 @@ export default {
             game.rdate = this.rdate
             game.trailer = this.trailer
 
-            this.$root.$data.games.push(game)
+            this.upload();
+            this.getItems();
             this.adder = !this.adder
             this.name = ""
             this.rdate = ""
             this.trailer = ""
             },
-            remove(game) {
-                this.$root.$data.games.splice(this.$root.$data.games.indexOf(game), 1);
-            }
+           async deleteItem(item) {
+      
+        await axios.delete("/api/games/" + item._id);
+        this.findItem = null;
+        this.getItems();
+        return true;
+    },
+    async editItem(item) {
+      
+        await axios.put("/api/games/" + item._id, {
+          title: this.editName,
+          description: this.editLocation,
+          path: this.editInfo
+        });
+        this.findItem = null;
+        this.getItems();
+        this.editer = !this.editer
 
+        return true;
+      
+    },
+    
     }
 
 }
