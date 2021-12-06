@@ -8,9 +8,9 @@ import mockprojects from './mock-projects.js'
 
 Vue.config.productionTip = false
 let data = {
-  games: mockgames,
-  dates: mockdates,
-  projects: mockprojects
+  games: [],
+  dates: [],
+  projects: []
 }
 new Vue({
   router,
